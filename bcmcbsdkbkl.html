@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Budget Planner</title>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --accent: #4895ef;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #4cc9f0;
+            --warning: #f72585;
+            --card-bg: #ffffff;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            padding: 30px;
+            margin-bottom: 20px;
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        h1, h2, h3 {
+            color: var(--secondary);
+            margin-bottom: 15px;
+        }
+        
+        h1 {
+            text-align: center;
+            margin: 20px 0;
+            color: var(--primary);
+            font-size: 2.5rem;
+        }
+        
+        .step {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .step.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--secondary);
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(72, 149, 239, 0.2);
+        }
+        
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        button:hover {
+            background-color: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        button:disabled {
+            background-color: #adb5bd;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .progress-container {
+            margin: 30px 0;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            transition: width 0.4s ease;
+        }
+        
+        .progress-text {
+            text-align: center;
+            font-weight: 600;
+            color: var(--secondary);
+        }
+        
+        .summary-item {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px dashed #dee2e6;
+        }
+        
+        .category {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 10px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+        }
+        
+        .category-name {
+            font-weight: 600;
+        }
+        
+        .category-value {
+            font-weight: 700;
+        }
+        
+        .savings-potential {
+            background-color: #e6f7ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid var(--success);
+        }
+        
+        .tips {
+            margin-top: 30px;
+        }
+        
+        .tip {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--accent);
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .tip-icon {
+            margin-right: 10px;
+            color: var(--accent);
+            font-size: 20px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px 0;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(67, 97, 238, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid var(--primary);
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        .user-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .user-info-item {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .user-info-label {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .user-info-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--secondary);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .savings-recommendation {
+            background-color: #fff8e6;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .savings-category {
+            margin-bottom: 10px;
+        }
+        
+        .savings-bar {
+            height: 8px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            margin: 5px 0;
+            overflow: hidden;
+        }
+        
+        .savings-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #4cc9f0, #4895ef);
+            border-radius: 4px;
+        }
+        
+        .highlight {
+            color: var(--primary);
+            font-weight: 700;
+        }
+        
+        .negative {
+            color: var(--warning);
+        }
+        
+        .positive {
+            color: var(--success);
+        }
+        
+        .recommendations {
+            margin-top: 30px;
+        }
+        
+        .recommendation-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .recommendation-title {
+            color: var(--secondary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .recommendation-icon {
+            margin-right: 10px;
+            color: var(--accent);
+        }
+        
+        .neighborhood-list, .car-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .neighborhood-item, .car-item {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            border-left: 3px solid var(--accent);
+        }
+        
+        .neighborhood-name, .car-name {
+            font-weight: 600;
+        }
+        
+        .neighborhood-price, .car-price {
+            font-size: 14px;
+            color: #6c757d;
+        }
+        
+        .suggestion-section {
+            margin-top: 30px;
+            animation: fadeIn 0.8s ease;
+        }
+        
+        #location-suggestions {
+            margin-top: 10px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .location-suggestion {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .location-suggestion:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .input-hint {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 4px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Smart Budget Planner</h1>
+        
+        <div class="card">
+            <!-- Step 1: Personal Information -->
+            <div class="step active" id="step1">
+                <h2>Welcome! Let's Get Started</h2>
+                <p>We'll help you create a personalized budget plan. First, tell us a bit about yourself.</p>
+                
+                <div class="form-group">
+                    <label for="name">Your Name</label>
+                    <input type="text" id="name" placeholder="Enter your full name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" placeholder="Enter your email">
+                </div>
+                
+                <div class="form-group">
+                    <label for="age">Age</label>
+                    <input type="number" id="age" placeholder="Enter your age" min="18" max="100">
+                </div>
+                
+                <div class="form-group">
+                    <label for="location">Location (City)</label>
+                    <input type="text" id="location" placeholder="Where do you live?">
+                    <div id="location-suggestions"></div>
+                </div>
+                
+                <button id="next1">Continue to Budget</button>
+            </div>
+            
+            <!-- Step 2: Income -->
+            <div class="step" id="step2">
+                <h2>Income Details</h2>
+                <p>Let's start with your monthly income after taxes.</p>
+                
+                <div class="form-group">
+                    <label for="income">Monthly Income</label>
+                    <input type="number" id="income" placeholder="Enter amount in USD" min="0">
+                    <div class="input-hint">Typical full-time salaries range from $2,500-$7,000/month</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="incomeFrequency">Income Frequency</label>
+                    <select id="incomeFrequency">
+                        <option value="monthly">Monthly</option>
+                        <option value="biweekly">Bi-weekly</option>
+                        <option value="weekly">Weekly</option>
+                    </select>
+                </div>
+                
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress" id="progress-bar" style="width: 12.5%"></div>
+                    </div>
+                    <div class="progress-text">Step 2 of 8</div>
+                </div>
+                
+                <button id="next2">Continue</button>
+            </div>
+            
+            <!-- Step 3: Housing Expenses -->
+            <div class="step" id="step3">
+                <h2>Housing Expenses</h2>
+                <p>Now let's look at your housing costs.</p>
+                
+                <div class="form-group">
+                    <label for="rent">Rent/Mortgage Payment</label>
+                    <input type="number" id="rent" placeholder="Enter amount" min="0">
+                    <div class="input-hint">Average: $800-$2,500 depending on location</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="utilities">Utilities (electricity, water, gas, etc.)</label>
+                    <input type="number" id="utilities" placeholder="Enter amount" min="0">
+                    <div class="input-hint">Typical: $150-$300 for 1-2 bedroom</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="internet">Internet & Phone</label>
+                    <input type="number" id="internet" placeholder="Enter amount" min="0">
+                    <div class="input-hint">Average: $60-$100 for internet + $30-$50 for phone</div>
+                </div>
+                
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 25%"></div>
+                    </div>
+                    <div class="progress-text">Step 3 of 8</div>
+                </div>
+                
+                <button id="next3">Continue</button>
+            </div>
+            
+            <!-- Step 4: Food & Dining -->
+            <div class="step" id="step4">
+                <h2>Food & Dining</h2>
+                <p>How much do you spend on food each month?</p>
+                
+                <div class="form-group">
+                    <label for="groceries">Groceries</label>
+                    <input type="number" id="groceries" placeholder="Enter amount" min="0">
+                    <div class="input-hint">Average: $250-$400 per person</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="dining">Dining Out & Takeout</label>
+                    <input type="number" id="dining" placeholder="Enter amount" min="0">
+                    <div class="input-hint">Typical: $100-$300 depending on habits</div>
+                </div>
+                
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 37.5%"></div>
+                    </div>
+                    <div class="progress-text">Step 4 of 8</div>
+                </div>
+                
+                <button id="next4">Continue</button>
+            </div>
+            
+            <!-- Step 5: Transportation -->
+            <div class="step" id="step5">
+                <h2>Transportation</h2>
+                <p>Your monthly transportation costs.</p>
+                
+                <div class="form-group">
+                    <label for="carPayment">Car Payment</label>
+                    <input type="number" id="carPayment" placeholder="Enter amount" min="0">
+                    <div class="input-hint">Average: $200-$500 depending on vehicle</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="gas">Gas & Fuel</label>
+                    <input type="number" id="gas" placeholder="Enter amount" min="0">
+                    <div class="input-hint">Typical: $100-$200 for average commute</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="publicTransport">Public Transportation</label>
+                    <input type="number" id="publicTransport" placeholder="Enter amount" min="0">
+                    <div class="input-hint">Average: $50-$150 for metro/bus passes</div>
+                </div>
+                
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 50%"></div>
+                    </div>
+                    <div class="progress-text">Step 5 of 8</div>
+                </div>
+                
+                <button id="next5">Continue</button>
+            </div>
+            
+            <!-- Step 6: Lifestyle Expenses -->
+            <div class="step" id="step6">
+                <h2>Lifestyle Expenses</h2>
+                <p>Your discretionary spending.</p>
+                
+                <div class="form-group">
+                    <label for="entertainment">Entertainment (movies, concerts, etc.)</label>
+                    <input type="number" id="entertainment" placeholder="Enter amount" min="0">
+                    <div class="input-hint">Typical: $50-$200 depending on activities</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="subscriptions">Subscriptions (Netflix, Spotify, etc.)</label>
+                    <input type="number" id="subscriptions" placeholder="Enter amount" min="0">
+                    <div class="input-hint">Average: $30-$80 for multiple services</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="hobbies">Hobbies & Activities</label>
+                    <input type="number" id="hobbies" placeholder="Enter amount" min="0">
+                    <div class="input-hint">Typical: $30-$150 depending on hobbies</div>
+                </div>
+                
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 62.5%"></div>
+                    </div>
+                    <div class="progress-text">Step 6 of 8</div>
+                </div>
+                
+                <button id="next6">Continue</button>
+            </div>
+            
+            <!-- Step 7: Health & Wellness -->
+            <div class="step" id="step7">
+                <h2>Health & Wellness</h2>
+                <p>Your health-related expenses.</p>
+                
+                <div class="form-group">
+                    <label for="insurance">Health Insurance</label>
+                    <input type="number" id="insurance" placeholder="Enter amount" min="0">
+                    <div class="input-hint">Average: $200-$500/month (employer plans often cheaper)</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="gym">Gym & Wellness</label>
+                    <input type="number" id="gym" placeholder="Enter amount" min="0">
+                    <div class="input-hint">Typical: $10-$100 (basic gym to premium memberships)</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="medical">Medical Expenses</label>
+                    <input type="number" id="medical" placeholder="Enter amount" min="0">
+                    <div class="input-hint">Average: $20-$100 for prescriptions/copays</div>
+                </div>
+                
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 75%"></div>
+                    </div>
+                    <div class="progress-text">Step 7 of 8</div>
+                </div>
+                
+                <button id="next7">Continue</button>
+            </div>
+            
+            <!-- Step 8: Other Expenses -->
+            <div class="step" id="step8">
+                <h2>Other Expenses</h2>
+                <p>Any other regular monthly expenses.</p>
+                
+                <div class="form-group">
+                    <label for="clothing">Clothing & Personal Care</label>
+                    <input type="number" id="clothing" placeholder="Enter amount" min="0">
+                    <div class="input-hint">Typical: $50-$150 for basics</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="gifts">Gifts & Donations</label>
+                    <input type="number" id="gifts" placeholder="Enter amount" min="0">
+                    <div class="input-hint">Average: $30-$100 depending on occasions</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="other">Other Expenses</label>
+                    <input type="number" id="other" placeholder="Enter amount" min="0">
+                    <div class="input-hint">Miscellaneous: $20-$100</div>
+                </div>
+                
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 87.5%"></div>
+                    </div>
+                    <div class="progress-text">Step 8 of 8</div>
+                </div>
+                
+                <button id="next8">Generate My Budget Plan</button>
+            </div>
+            
+            <!-- Step 9: Loading -->
+            <div class="step" id="step9">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <h3>Creating Your Personalized Budget Plan</h3>
+                    <p>Analyzing your spending patterns and generating recommendations...</p>
+                </div>
+            </div>
+            
+            <!-- Step 10: Results -->
+            <div class="step" id="step10">
+                <div id="user-header" class="user-info">
+                    <div class="user-info-item">
+                        <div class="user-info-label">Name</div>
+                        <div class="user-info-value" id="display-name"></div>
+                    </div>
+                    <div class="user-info-item">
+                        <div class="user-info-label">Age</div>
+                        <div class="user-info-value" id="display-age"></div>
+                    </div>
+                    <div class="user-info-item">
+                        <div class="user-info-label">Location</div>
+                        <div class="user-info-value" id="display-location"></div>
+                    </div>
+                </div>
+                
+                <h2>Your Personalized Budget Summary</h2>
+                
+                <div class="summary-item">
+                    <h3>Income & Savings Overview</h3>
+                    <div class="category">
+                        <span class="category-name">Monthly Income:</span>
+                        <span class="category-value" id="display-income"></span>
+                    </div>
+                    <div class="category">
+                        <span class="category-name">Total Expenses:</span>
+                        <span class="category-value" id="display-expenses"></span>
+                    </div>
+                    <div class="category">
+                        <span class="category-name">Monthly Savings:</span>
+                        <span class="category-value" id="display-savings"></span>
+                    </div>
+                </div>
+                
+                <div class="savings-potential">
+                    <h3>Savings Potential</h3>
+                    <p id="savings-message"></p>
+                    <div id="savings-recommendations"></div>
+                </div>
+                
+                <div class="summary-item">
+                    <h3>Expense Breakdown</h3>
+                    <div id="expense-breakdown"></div>
+                </div>
+                
+                <div class="suggestion-section" id="neighborhood-recommendations">
+                    <div class="recommendation-card">
+                        <div class="recommendation-title">
+                            <span class="recommendation-icon">🏡</span>
+                            <h3>Recommended Neighborhoods</h3>
+                        </div>
+                        <p>Based on your income of $<span id="income-amount"></span> in <span id="city-name"></span>, here are some neighborhoods that might fit your budget:</p>
+                        <div class="neighborhood-list" id="neighborhood-list"></div>
+                    </div>
+                </div>
+                
+                <div class="suggestion-section" id="car-recommendations">
+                    <div class="recommendation-card">
+                        <div class="recommendation-title">
+                            <span class="recommendation-icon">🚗</span>
+                            <h3>Recommended Vehicles</h3>
+                        </div>
+                        <p>Based on your income and budget, here are some vehicles you might consider:</p>
+                        <div class="car-list" id="car-list"></div>
+                    </div>
+                </div>
+                
+                <div class="tips">
+                    <h3>Personalized Budgeting Tips</h3>
+                    <div id="budget-tips"></div>
+                </div>
+                
+                <button id="restart">Start Over With New Budget</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // [All previous JavaScript remains exactly the same]
+        // Current step tracking
+        let currentStep = 1;
+        const totalSteps = 8;
+        
+        // User data object
+        const userData = {
+            personal: {},
+            income: {},
+            expenses: {}
+        };
+        
+        // City to neighborhood mapping with average rent ranges
+        const cityNeighborhoods = {
+            "new york": [
+                { name: "Astoria, Queens", rent: "1,800-2,500", description: "Great for young professionals, diverse community" },
+                { name: "Washington Heights, Manhattan", rent: "1,700-2,400", description: "More affordable Manhattan option" },
+                { name: "Bushwick, Brooklyn", rent: "1,900-2,600", description: "Artsy neighborhood with vibrant nightlife" },
+                { name: "Jersey City, NJ", rent: "1,600-2,300", description: "Just across the river, good transit links" },
+                { name: "Harlem, Manhattan", rent: "1,800-2,500", description: "Cultural hub with improving amenities" }
+            ],
+            "los angeles": [
+                { name: "Koreatown", rent: "1,500-2,200", description: "Central location, great food scene" },
+                { name: "Highland Park", rent: "1,600-2,300", description: "Trendy area with artsy vibe" },
+                { name: "North Hollywood", rent: "1,400-2,000", description: "More affordable Valley option" },
+                { name: "Long Beach", rent: "1,300-1,900", description: "Beach access at lower prices" },
+                { name: "Culver City", rent: "1,800-2,500", description: "Growing tech hub with good transit" }
+            ],
+            "chicago": [
+                { name: "Logan Square", rent: "1,200-1,800", description: "Hip neighborhood with great restaurants" },
+                { name: "Pilsen", rent: "1,000-1,500", description: "Artsy, culturally rich area" },
+                { name: "Edgewater", rent: "1,100-1,600", description: "Lakefront access at reasonable prices" },
+                { name: "Bridgeport", rent: "900-1,400", description: "Affordable with good transit" },
+                { name: "Ravenswood", rent: "1,300-1,900", description: "Family-friendly with good schools" }
+            ],
+            "houston": [
+                { name: "Montrose", rent: "1,000-1,600", description: "Artsy, walkable neighborhood" },
+                { name: "The Heights", rent: "1,100-1,700", description: "Historic area with good amenities" },
+                { name: "Midtown", rent: "1,200-1,800", description: "Central location with nightlife" },
+                { name: "EaDo", rent: "900-1,400", description: "Up-and-coming area near downtown" },
+                { name: "Spring Branch", rent: "800-1,300", description: "More affordable family area" }
+            ],
+            "miami": [
+                { name: "Little Havana", rent: "1,200-1,800", description: "Vibrant Cuban culture" },
+                { name: "Coral Gables", rent: "1,500-2,200", description: "Upscale with good schools" },
+                { name: "Coconut Grove", rent: "1,400-2,000", description: "Waterfront properties" },
+                { name: "Wynwood", rent: "1,300-1,900", description: "Arts district with nightlife" },
+                { name: "North Miami", rent: "1,100-1,700", description: "More affordable option" }
+            ],
+            "default": [
+                { name: "Downtown Area", rent: "1,200-1,800", description: "Central location with good amenities" },
+                { name: "University District", rent: "900-1,400", description: "Good for students and young professionals" },
+                { name: "Suburban Neighborhood", rent: "1,000-1,500", description: "Family-friendly with more space" },
+                { name: "Up-and-Coming Area", rent: "800-1,300", description: "More affordable with growth potential" },
+                { name: "Mixed-Use Development", rent: "1,100-1,700", description: "Modern amenities in walkable area" }
+            ]
+        };
+        
+        // Car recommendations by income level
+        const carRecommendations = [
+            {
+                range: [0, 25000],
+                cars: [
+                    { name: "Used Honda Civic", price: "$12,000-$18,000", mpg: "32-42", type: "Compact Sedan" },
+                    { name: "Used Toyota Corolla", price: "$10,000-$16,000", mpg: "30-40", type: "Compact Sedan" },
+                    { name: "Used Hyundai Elantra", price: "$11,000-$17,000", mpg: "33-41", type: "Compact Sedan" },
+                    { name: "Used Ford Focus", price: "$9,000-$15,000", mpg: "30-40", type: "Compact Sedan" },
+                    { name: "Used Kia Forte", price: "$10,000-$16,000", mpg: "31-41", type: "Compact Sedan" }
+                ]
+            },
+            {
+                range: [25001, 50000],
+                cars: [
+                    { name: "New Hyundai Elantra", price: "$20,000-$25,000", mpg: "33-41", type: "Compact Sedan" },
+                    { name: "New Honda Civic", price: "$22,000-$28,000", mpg: "32-42", type: "Compact Sedan" },
+                    { name: "New Toyota Corolla", price: "$20,000-$26,000", mpg: "32-41", type: "Compact Sedan" },
+                    { name: "Used Toyota RAV4", price: "$18,000-$25,000", mpg: "28-35", type: "Compact SUV" },
+                    { name: "Used Honda CR-V", price: "$19,000-$26,000", mpg: "28-34", type: "Compact SUV" }
+                ]
+            },
+            {
+                range: [50001, 80000],
+                cars: [
+                    { name: "New Toyota RAV4", price: "$27,000-$35,000", mpg: "28-35", type: "Compact SUV" },
+                    { name: "New Honda CR-V", price: "$28,000-$36,000", mpg: "28-34", type: "Compact SUV" },
+                    { name: "New Subaru Outback", price: "$28,000-$38,000", mpg: "26-32", type: "Midsize SUV" },
+                    { name: "New Mazda CX-5", price: "$26,000-$34,000", mpg: "28-31", type: "Compact SUV" },
+                    { name: "New Tesla Model 3", price: "$40,000-$50,000", mpg: "Equivalent 132 MPGe", type: "Electric Sedan" }
+                ]
+            },
+            {
+                range: [80001, 120000],
+                cars: [
+                    { name: "New Lexus ES", price: "$42,000-$52,000", mpg: "25-34", type: "Luxury Sedan" },
+                    { name: "New Acura RDX", price: "$40,000-$50,000", mpg: "22-28", type: "Luxury SUV" },
+                    { name: "New Tesla Model Y", price: "$50,000-$65,000", mpg: "Equivalent 129 MPGe", type: "Electric SUV" },
+                    { name: "New BMW 3 Series", price: "$43,000-$55,000", mpg: "26-36", type: "Luxury Sedan" },
+                    { name: "New Volvo XC60", price: "$42,000-$54,000", mpg: "23-30", type: "Luxury SUV" }
+                ]
+            },
+            {
+                range: [120001, Infinity],
+                cars: [
+                    { name: "New Tesla Model S", price: "$80,000-$110,000", mpg: "Equivalent 120 MPGe", type: "Electric Luxury" },
+                    { name: "New BMW 5 Series", price: "$55,000-$75,000", mpg: "25-33", type: "Executive Sedan" },
+                    { name: "New Mercedes-Benz GLE", price: "$60,000-$80,000", mpg: "21-29", type: "Luxury SUV" },
+                    { name: "New Porsche Cayenne", price: "$70,000-$90,000", mpg: "19-27", type: "Performance SUV" },
+                    { name: "New Audi A7", price: "$70,000-$85,000", mpg: "24-32", type: "Luxury Hatchback" }
+                ]
+            }
+        ];
+        
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set up next buttons
+            for (let i = 1; i <= 8; i++) {
+                document.getElementById(`next${i}`).addEventListener('click', function() {
+                    if (validateStep(i)) {
+                        saveStepData(i);
+                        goToStep(i + 1);
+                        
+                        // If this is the last step, process the data
+                        if (i === 8) {
+                            setTimeout(processBudgetData, 2000);
+                        }
+                    }
+                });
+            }
+            
+            // Set up restart button
+            document.getElementById('restart').addEventListener('click', resetApp);
+            
+            // Allow pressing Enter to proceed
+            document.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    if (validateStep(currentStep)) {
+                        saveStepData(currentStep);
+                        goToStep(currentStep + 1);
+                        
+                        if (currentStep === 8) {
+                            setTimeout(processBudgetData, 2000);
+                        }
+                    }
+                }
+            });
+            
+            // Set up location suggestions
+            const locationInput = document.getElementById('location');
+            const suggestionsContainer = document.getElementById('location-suggestions');
+            
+            locationInput.addEventListener('input', function() {
+                const input = this.value.toLowerCase();
+                if (input.length > 2) {
+                    showCitySuggestions(input);
+                } else {
+                    suggestionsContainer.style.display = 'none';
+                }
+            });
+            
+            // Hide suggestions when clicking elsewhere
+            document.addEventListener('click', function(e) {
+                if (e.target !== locationInput) {
+                    suggestionsContainer.style.display = 'none';
+                }
+            });
+        });
+        
+        // Show city suggestions
+        function showCitySuggestions(input) {
+            const suggestionsContainer = document.getElementById('location-suggestions');
+            suggestionsContainer.innerHTML = '';
+            
+            // Check if input matches any major city
+            const majorCities = ["new york", "los angeles", "chicago", "houston", "miami"];
+            const matchedCities = majorCities.filter(city => city.includes(input));
+            
+            if (matchedCities.length > 0) {
+                matchedCities.forEach(city => {
+                    const suggestion = document.createElement('div');
+                    suggestion.className = 'location-suggestion';
+                    suggestion.textContent = city.charAt(0).toUpperCase() + city.slice(1);
+                    suggestion.addEventListener('click', function() {
+                        document.getElementById('location').value = this.textContent;
+                        suggestionsContainer.style.display = 'none';
+                    });
+                    suggestionsContainer.appendChild(suggestion);
+                });
+                suggestionsContainer.style.display = 'block';
+            } else {
+                suggestionsContainer.style.display = 'none';
+            }
+        }
+        
+        // Validate current step
+        function validateStep(step) {
+            if (step === 1) {
+                // Validate personal info
+                const name = document.getElementById('name').value.trim();
+                const email = document.getElementById('email').value.trim();
+                const age = document.getElementById('age').value;
+                
+                if (!name) {
+                    alert('Please enter your name');
+                    return false;
+                }
+                
+                if (!email || !email.includes('@')) {
+                    alert('Please enter a valid email address');
+                    return false;
+                }
+                
+                if (!age || age < 18 || age > 100) {
+                    alert('Please enter a valid age between 18 and 100');
+                    return false;
+                }
+                
+                return true;
+            }
+            else if (step === 2) {
+                // Validate income
+                const income = document.getElementById('income').value;
+                
+                if (!income || isNaN(income) || parseFloat(income) <= 0) {
+                    alert('Please enter a valid monthly income');
+                    return false;
+                }
+                
+                return true;
+            }
+            else {
+                // For expense steps, all fields are optional (can be 0)
+                return true;
+            }
+        }
+        
+        // Save data from current step
+        function saveStepData(step) {
+            if (step === 1) {
+                userData.personal = {
+                    name: document.getElementById('name').value.trim(),
+                    email: document.getElementById('email').value.trim(),
+                    age: document.getElementById('age').value,
+                    location: document.getElementById('location').value.trim()
+                };
+            }
+            else if (step === 2) {
+                userData.income = {
+                    amount: parseFloat(document.getElementById('income').value) || 0,
+                    frequency: document.getElementById('incomeFrequency').value
+                };
+            }
+            else if (step === 3) {
+                userData.expenses.housing = {
+                    rent: parseFloat(document.getElementById('rent').value) || 0,
+                    utilities: parseFloat(document.getElementById('utilities').value) || 0,
+                    internet: parseFloat(document.getElementById('internet').value) || 0
+                };
+            }
+            else if (step === 4) {
+                userData.expenses.food = {
+                    groceries: parseFloat(document.getElementById('groceries').value) || 0,
+                    dining: parseFloat(document.getElementById('dining').value) || 0
+                };
+            }
+            else if (step === 5) {
+                userData.expenses.transportation = {
+                    carPayment: parseFloat(document.getElementById('carPayment').value) || 0,
+                    gas: parseFloat(document.getElementById('gas').value) || 0,
+                    publicTransport: parseFloat(document.getElementById('publicTransport').value) || 0
+                };
+            }
+            else if (step === 6) {
+                userData.expenses.lifestyle = {
+                    entertainment: parseFloat(document.getElementById('entertainment').value) || 0,
+                    subscriptions: parseFloat(document.getElementById('subscriptions').value) || 0,
+                    hobbies: parseFloat(document.getElementById('hobbies').value) || 0
+                };
+            }
+            else if (step === 7) {
+                userData.expenses.health = {
+                    insurance: parseFloat(document.getElementById('insurance').value) || 0,
+                    gym: parseFloat(document.getElementById('gym').value) || 0,
+                    medical: parseFloat(document.getElementById('medical').value) || 0
+                };
+            }
+            else if (step === 8) {
+                userData.expenses.other = {
+                    clothing: parseFloat(document.getElementById('clothing').value) || 0,
+                    gifts: parseFloat(document.getElementById('gifts').value) || 0,
+                    other: parseFloat(document.getElementById('other').value) || 0
+                };
+            }
+        }
+        
+        // Navigate to specific step
+        function goToStep(step) {
+            // Hide current step
+            document.querySelector('.step.active').classList.remove('active');
+            
+            // Show new step
+            document.getElementById(`step${step}`).classList.add('active');
+            
+            // Update current step
+            currentStep = step;
+            
+            // Update progress bar if not on first or last steps
+            if (step > 1 && step <= 8) {
+                const progressPercent = (step / totalSteps) * 100;
+                document.querySelector('#step' + step + ' .progress').style.width = `${progressPercent}%`;
+                document.querySelector('#step' + step + ' .progress-text').textContent = `Step ${step} of ${totalSteps}`;
+            }
+        }
+        
+        // Process all budget data and show results
+        function processBudgetData() {
+            // Calculate total income (convert to monthly if needed)
+            let monthlyIncome = userData.income.amount;
+            if (userData.income.frequency === 'biweekly') {
+                monthlyIncome = (userData.income.amount * 26) / 12;
+            } else if (userData.income.frequency === 'weekly') {
+                monthlyIncome = (userData.income.amount * 52) / 12;
+            }
+            
+            // Calculate total expenses by category
+            const expenses = {
+                housing: userData.expenses.housing.rent + userData.expenses.housing.utilities + userData.expenses.housing.internet,
+                food: userData.expenses.food.groceries + userData.expenses.food.dining,
+                transportation: userData.expenses.transportation.carPayment + userData.expenses.transportation.gas + userData.expenses.transportation.publicTransport,
+                lifestyle: userData.expenses.lifestyle.entertainment + userData.expenses.lifestyle.subscriptions + userData.expenses.lifestyle.hobbies,
+                health: userData.expenses.health.insurance + userData.expenses.health.gym + userData.expenses.health.medical,
+                other: userData.expenses.other.clothing + userData.expenses.other.gifts + userData.expenses.other.other
+            };
+            
+            // Calculate totals
+            const totalExpenses = Object.values(expenses).reduce((sum, val) => sum + val, 0);
+            const savings = monthlyIncome - totalExpenses;
+            const savingsRate = (savings / monthlyIncome) * 100;
+            
+            // Calculate percentages
+            const expensePercentages = {};
+            for (const [category, amount] of Object.entries(expenses)) {
+                expensePercentages[category] = (amount / monthlyIncome) * 100;
+            }
+            
+            // Generate personalized recommendations
+            const recommendations = generateRecommendations(monthlyIncome, expenses, totalExpenses, savings, savingsRate);
+            
+            // Display results
+            displayResults(monthlyIncome, expenses, totalExpenses, savings, savingsRate, expensePercentages, recommendations);
+            
+            // Display neighborhood and car recommendations
+            displayNeighborhoodRecommendations(monthlyIncome * 12); // Annual income for neighborhood suggestions
+            displayCarRecommendations(monthlyIncome * 12); // Annual income for car suggestions
+            
+            // Go to results step
+            goToStep(10);
+        }
+        
+        // Generate personalized recommendations
+        function generateRecommendations(income, expenses, totalExpenses, savings, savingsRate) {
+            const recommendations = {
+                savingsPotential: [],
+                tips: []
+            };
+            
+            // Savings potential analysis
+            if (expenses.housing / income > 0.3) {
+                const potential = expenses.housing * 0.15; // Suggest reducing by 15%
+                recommendations.savingsPotential.push({
+                    category: 'Housing',
+                    current: expenses.housing,
+                    potential: potential,
+                    message: `Consider finding a more affordable place or negotiating rent. Potential savings: $${potential.toFixed(2)}/month.`
+                });
+            }
+            
+            if (expenses.food / income > 0.15) {
+                const potential = expenses.food * 0.2; // Suggest reducing by 20%
+                recommendations.savingsPotential.push({
+                    category: 'Food',
+                    current: expenses.food,
+                    potential: potential,
+                    message: `Meal planning and reducing dining out could save you $${potential.toFixed(2)}/month.`
+                });
+            }
+            
+            if (expenses.lifestyle / income > 0.1) {
+                const potential = expenses.lifestyle * 0.25; // Suggest reducing by 25%
+                recommendations.savingsPotential.push({
+                    category: 'Lifestyle',
+                    current: expenses.lifestyle,
+                    potential: potential,
+                    message: `Review subscriptions and entertainment spending. Potential savings: $${potential.toFixed(2)}/month.`
+                });
+            }
+            
+            // Generate tips based on savings rate
+            if (savingsRate < 0) {
+                recommendations.tips.push("You're spending more than you earn. This is unsustainable long-term. Immediate action is needed to reduce expenses or increase income.");
+                recommendations.tips.push("Prioritize essential expenses (housing, food, utilities) and cut back heavily on discretionary spending.");
+                recommendations.tips.push("Consider temporary measures like getting a roommate, selling unused items, or taking on side work.");
+            } else if (savingsRate < 10) {
+                recommendations.tips.push("Aim to save at least 10-15% of your income for financial security. Start by cutting back on non-essentials.");
+                recommendations.tips.push("Automate your savings by setting up a direct transfer to a savings account each payday.");
+                recommendations.tips.push("Track every dollar you spend for a month - you might be surprised where your money goes!");
+            } else if (savingsRate >= 20) {
+                recommendations.tips.push("Great job! You're saving more than 20% of your income. Consider investing some of these savings for long-term growth.");
+                recommendations.tips.push("With your healthy savings rate, you might want to build an emergency fund (3-6 months of expenses) if you haven't already.");
+                recommendations.tips.push("Think about your financial goals - are you saving for a house, retirement, or travel? Allocate your savings accordingly.");
+            } else {
+                recommendations.tips.push("Your savings rate is decent. Consider setting specific financial goals to make the most of your savings.");
+                recommendations.tips.push("Review your largest expense categories for potential savings opportunities.");
+                recommendations.tips.push("Even small increases in your savings rate can add up significantly over time.");
+            }
+            
+            // Age-specific tips
+            if (userData.personal.age < 30) {
+                recommendations.tips.push("As a young person, consider investing in your education and career development - these often provide the best returns.");
+            } else if (userData.personal.age > 50) {
+                recommendations.tips.push("As you approach retirement, focus on paying down debt and building your nest egg.");
+            }
+            
+            return recommendations;
+        }
+        
+        // Display neighborhood recommendations
+        function displayNeighborhoodRecommendations(annualIncome) {
+            const city = userData.personal.location.toLowerCase();
+            const neighborhoods = cityNeighborhoods[city] || cityNeighborhoods.default;
+            
+            document.getElementById('income-amount').textContent = annualIncome.toLocaleString();
+            document.getElementById('city-name').textContent = userData.personal.location;
+            
+            const neighborhoodList = document.getElementById('neighborhood-list');
+            neighborhoodList.innerHTML = '';
+            
+            neighborhoods.forEach(hood => {
+                const item = document.createElement('div');
+                item.className = 'neighborhood-item';
+                item.innerHTML = `
+                    <div class="neighborhood-name">${hood.name}</div>
+                    <div class="neighborhood-price">Rent: $${hood.rent}/month</div>
+                    <div class="neighborhood-description">${hood.description}</div>
+                `;
+                neighborhoodList.appendChild(item);
+            });
+        }
+        
+        // Display car recommendations
+        function displayCarRecommendations(annualIncome) {
+            const carList = document.getElementById('car-list');
+            carList.innerHTML = '';
+            
+            // Find the appropriate car bracket
+            let selectedCars = [];
+            for (const bracket of carRecommendations) {
+                if (annualIncome >= bracket.range[0] && annualIncome <= bracket.range[1]) {
+                    selectedCars = bracket.cars;
+                    break;
+                }
+            }
+            
+            // If income is above the highest bracket, use the last bracket
+            if (selectedCars.length === 0 && annualIncome > carRecommendations[carRecommendations.length - 1].range[0]) {
+                selectedCars = carRecommendations[carRecommendations.length - 1].cars;
+            }
+            
+            selectedCars.forEach(car => {
+                const item = document.createElement('div');
+                item.className = 'car-item';
+                item.innerHTML = `
+                    <div class="car-name">${car.name}</div>
+                    <div class="car-price">Price: ${car.price}</div>
+                    <div class="car-mpg">MPG: ${car.mpg}</div>
+                    <div class="car-type">Type: ${car.type}</div>
+                `;
+                carList.appendChild(item);
+            });
+        }
+        
+        // Display the results
+        function displayResults(income, expenses, totalExpenses, savings, savingsRate, percentages, recommendations) {
+            // Display user info
+            document.getElementById('display-name').textContent = userData.personal.name;
+            document.getElementById('display-age').textContent = userData.personal.age;
+            document.getElementById('display-location').textContent = userData.personal.location;
+            
+            // Display income and savings
+            document.getElementById('display-income').textContent = `$${income.toFixed(2)}`;
+            document.getElementById('display-expenses').textContent = `$${totalExpenses.toFixed(2)}`;
+            
+            const savingsElement = document.getElementById('display-savings');
+            savingsElement.textContent = `$${savings.toFixed(2)} (${savingsRate.toFixed(1)}%)`;
+            savingsElement.className = savings >= 0 ? 'category-value positive' : 'category-value negative';
+            
+            // Display savings message
+            const savingsMessage = document.getElementById('savings-message');
+            if (savingsRate < 0) {
+                savingsMessage.innerHTML = `<span class="highlight negative">You're spending $${Math.abs(savings).toFixed(2)} more than you earn each month.</span> This is not sustainable and needs immediate attention.`;
+            } else if (savingsRate < 10) {
+                savingsMessage.innerHTML = `You're saving <span class="highlight">${savingsRate.toFixed(1)}%</span> of your income. Aim for at least 10-15% for better financial security.`;
+            } else if (savingsRate >= 20) {
+                savingsMessage.innerHTML = `Great job! You're saving <span class="highlight positive">${savingsRate.toFixed(1)}%</span> of your income. This puts you ahead of most people.`;
+            } else {
+                savingsMessage.innerHTML = `You're saving <span class="highlight">${savingsRate.toFixed(1)}%</span> of your income. There's room for improvement to reach 15-20%.`;
+            }
+            
+            // Display savings potential
+            const savingsRecs = document.getElementById('savings-recommendations');
+            if (recommendations.savingsPotential.length > 0) {
+                let html = '<h4>Where You Could Save More:</h4>';
+                
+                recommendations.savingsPotential.forEach(item => {
+                    const currentPercent = (item.current / income) * 100;
+                    const potentialPercent = ((item.current - item.potential) / income) * 100;
+                    
+                    html += `
+                        <div class="savings-recommendation">
+                            <div class="savings-category">
+                                <strong>${item.category}:</strong> Currently $${item.current.toFixed(2)} (${currentPercent.toFixed(1)}% of income)
+                            </div>
+                            <div class="savings-bar">
+                                <div class="savings-progress" style="width: ${currentPercent}%"></div>
+                            </div>
+                            <div class="savings-category">
+                                <strong>Potential:</strong> $${(item.current - item.potential).toFixed(2)} (${potentialPercent.toFixed(1)}% of income)
+                            </div>
+                            <p>${item.message}</p>
+                        </div>
+                    `;
+                });
+                
+                savingsRecs.innerHTML = html;
+            } else {
+                savingsRecs.innerHTML = '<p>Your spending is already quite efficient across major categories. Great job!</p>';
+            }
+            
+            // Display expense breakdown
+            const expenseBreakdown = document.getElementById('expense-breakdown');
+            let breakdownHtml = '';
+            
+            for (const [category, amount] of Object.entries(expenses)) {
+                breakdownHtml += `
+                    <div class="category">
+                        <span class="category-name">${category.charAt(0).toUpperCase() + category.slice(1)}:</span>
+                        <span class="category-value">$${amount.toFixed(2)} (${percentages[category].toFixed(1)}%)</span>
+                    </div>
+                `;
+            }
+            
+            expenseBreakdown.innerHTML = breakdownHtml;
+            
+            // Display tips
+            const tipsContainer = document.getElementById('budget-tips');
+            let tipsHtml = '';
+            
+            recommendations.tips.forEach((tip, index) => {
+                tipsHtml += `
+                    <div class="tip">
+                        <div class="tip-icon">${index + 1}.</div>
+                        <div>${tip}</div>
+                    </div>
+                `;
+            });
+            
+            tipsContainer.innerHTML = tipsHtml;
+        }
+        
+        // Reset the app
+        function resetApp() {
+            // Clear all inputs
+            document.getElementById('name').value = '';
+            document.getElementById('email').value = '';
+            document.getElementById('age').value = '';
+            document.getElementById('location').value = '';
+            document.getElementById('income').value = '';
+            
+            // Clear expense inputs
+            const expenseInputs = [
+                'rent', 'utilities', 'internet',
+                'groceries', 'dining',
+                'carPayment', 'gas', 'publicTransport',
+                'entertainment', 'subscriptions', 'hobbies',
+                'insurance', 'gym', 'medical',
+                'clothing', 'gifts', 'other'
+            ];
+            
+            expenseInputs.forEach(id => {
+                document.getElementById(id).value = '';
+            });
+            
+            // Reset data object
+            userData.personal = {};
+            userData.income = {};
+            userData.expenses = {};
+            
+            // Go back to first step
+            document.querySelector('.step.active').classList.remove('active');
+            currentStep = 1;
+            document.getElementById('step1').classList.add('active');
+        }
+    </script>
+</body>
+</html>
